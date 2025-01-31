@@ -4,71 +4,64 @@ import {
   TokenBalance,
   TokenMetadataResponse,
 } from "alchemy-sdk";
-import { Address, Balances } from "../types";
+import { Address, AddressTokenMap, TokenBalanceMap } from "../util/types";
 import {
   NO_BALANCES_FOR_ADDRESS,
   RPC_ERROR,
   ALCHEMY_API_KEY_NOT_SET,
-} from "../errors";
+} from "../util/errors";
 
 export class AlchemyService {
-  alchemy: Alchemy;
+  private alchemy: Alchemy;
 
-  constructor(network: Network) {
-    if (!process.env.ALCHEMY_API_KEY) {
+  constructor(apiKey: string | undefined, network: Network) {
+    if (!apiKey) {
       throw new Error(ALCHEMY_API_KEY_NOT_SET);
     }
 
     this.alchemy = new Alchemy({
-      apiKey: process.env.ALCHEMY_API_KEY,
+      apiKey,
       network,
     });
   }
 
   public async fetchBalances(
     address: Address,
-    tokenAddressMap: Record<string, string>
-  ): Promise<Balances> {
+    addressTokenMap: AddressTokenMap
+  ): Promise<TokenBalanceMap> {
     const tokenBalances = await this.fetchTokenBalances(
       address,
-      tokenAddressMap
+      addressTokenMap
     );
+
     const metadata = await this.fetchTokenMetadata(tokenBalances);
     const balances = this.getBalancesFromTokenData(
       tokenBalances,
       metadata,
-      tokenAddressMap
+      addressTokenMap
     );
     return balances;
   }
 
   private async fetchTokenBalances(
     address: Address,
-    tokenAddressMap: Record<string, string>
+    addressTokenMap: AddressTokenMap
   ): Promise<TokenBalance[]> {
     let resp;
     try {
       resp = await this.alchemy.core.getTokenBalances(
         address,
-        Object.values(tokenAddressMap)
+        Object.keys(addressTokenMap)
       );
     } catch (err) {
       console.error(err);
       throw new Error(RPC_ERROR);
     }
 
-    if (resp.tokenBalances.length === 0) {
-      throw new Error(NO_BALANCES_FOR_ADDRESS);
-    }
-
     // Filter out any with errors
     const tokenBalances = resp.tokenBalances.filter(
       (b) => !b.error && b.tokenBalance && Number(b.tokenBalance) !== 0
     );
-
-    if (tokenBalances.length === 0) {
-      throw new Error(NO_BALANCES_FOR_ADDRESS);
-    }
 
     return tokenBalances;
   }
@@ -85,28 +78,19 @@ export class AlchemyService {
   private getBalancesFromTokenData(
     tokenBalances: TokenBalance[],
     metadata: TokenMetadataResponse[],
-    tokenAddressMap: Record<string, string>
+    addressTokenMap: AddressTokenMap
   ) {
-    const balances: Record<string, number> = {};
-    for (let i = 0; i < tokenBalances.length; ++i) {
-      const associatedMetadata = metadata[i];
-      const value =
-        Number(tokenBalances[i].tokenBalance) /
-        Math.pow(10, Number(associatedMetadata.decimals));
-      const key = Object.keys(tokenAddressMap).find((key: string) => {
-        const typekey = key as keyof typeof tokenAddressMap;
-        if (
-          tokenAddressMap[typekey] ===
-          tokenBalances[i].contractAddress.toLowerCase()
-        ) {
-          return key;
-        }
-      });
+    const balances: TokenBalanceMap = {};
 
-      if (!key) {
-        continue;
+    for (let i = 0; i < tokenBalances.length; ++i) {
+      const tokenMetadata = metadata[i];
+      const contractAddress = tokenBalances[i].contractAddress.toLowerCase();
+      const key = addressTokenMap[contractAddress];
+      if (key) {
+        balances[key] =
+          Number(tokenBalances[i].tokenBalance) /
+          Math.pow(10, Number(tokenMetadata.decimals));
       }
-      balances[key] = value;
     }
 
     return balances;
