@@ -5,11 +5,7 @@ import {
   TokenMetadataResponse,
 } from "alchemy-sdk";
 import { Address, AddressTokenMap, TokenBalanceMap } from "../util/types";
-import {
-  NO_BALANCES_FOR_ADDRESS,
-  RPC_ERROR,
-  ALCHEMY_API_KEY_NOT_SET,
-} from "../util/errors";
+import { RPC_ERROR, ALCHEMY_API_KEY_NOT_SET } from "../util/errors";
 
 export class AlchemyService {
   private alchemy: Alchemy;
