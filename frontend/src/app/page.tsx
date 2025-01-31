@@ -1,16 +1,9 @@
 "use client";
 
 import { getBalance } from "@/api/balance";
+import { BalanceList } from "@/components/BalanceList";
+import { validateEthereumAddress } from "@/util/validateEthereumAddress";
 import { ChangeEvent, FormEvent, useState } from "react";
-
-/*
-  - does api request to /api/balance
-  - format the balances
-*/
-
-function validateEthereumAddress(address: string) {
-  return /^0x[a-fA-F0-9]{40}$/.test(address);
-}
 
 export default function Home() {
   const [address, setAddress] = useState<string>("");
@@ -19,6 +12,7 @@ export default function Home() {
     string | number
   > | null>(null);
   const [error, setError] = useState<string>();
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleAddress = (e: ChangeEvent<HTMLInputElement>) => {
     setAddress(e.target.value);
@@ -30,61 +24,71 @@ export default function Home() {
     e.preventDefault();
 
     if (!validateEthereumAddress(address)) {
-      setError("Invalid Ethereum Address!");
+      setError("Invalid Ethereum Address");
       return;
     }
 
+    setLoading(true);
     getBalance(address)
       .then((data) => {
         setBalances(data);
       })
       .catch((err) => {
         setError(err);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
 
-  const renderBalances = () => {
-    if (!balances) {
-      return null;
+  const handlePaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      setAddress(text);
+    } catch (err) {
+      console.error("Failed to read clipboard", err);
     }
-    return Object.entries(balances).map(([key, value]) => (
-      <div key={key} className="flex flex-row gap-8">
-        <div className="w-12">{key}</div>
-        <div>{value}</div>
-      </div>
-    ));
   };
 
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start w-1/2">
+      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start w-1/2 border rounded-md p-8">
+        <h1 className="text-2xl text-orange-500">Display your balances</h1>
         <div className="flex gap-4 items-center flex-col sm:flex-row w-full">
           <form className="w-full space-y-8" onSubmit={handleSubmit}>
             <div>
-              <label className="mr-4" htmlFor="address">
+              <label className="mr-4 text-xl my-2" htmlFor="address">
                 Address
               </label>
-              <input
-                id="address"
-                className="text-black w-full"
-                type="text"
-                value={address}
-                onChange={handleAddress}
-              />
-            </div>
-            <button
-              className="border rounded-md p-2 hover:bg-blue-500"
-              type="submit"
-            >
-              Submit
-            </button>
-            <div className="text-red-500">{error}</div>
-            {balances && (
-              <div>
-                <div>Balances</div>
-                {renderBalances()}
+              <div className="flex items-center gap-2">
+                <input
+                  id="address"
+                  className="text-black w-full rounded-md py-2 px-2"
+                  type="text"
+                  value={address}
+                  onChange={handleAddress}
+                  placeholder="Enter a valid Ethereum address"
+                />
+                <button
+                  type="button"
+                  className="border rounded-md p-1.5 hover:bg-orange-500"
+                  onClick={handlePaste}
+                >
+                  📋
+                </button>
               </div>
-            )}
+
+              <button
+                className="border rounded-md p-2 mt-4 hover:bg-orange-500 w-32"
+                type="submit"
+                disabled={loading}
+              >
+                {loading ? "Loading..." : "Submit"}
+              </button>
+            </div>
+
+            <div className="text-red-500">{error}</div>
+            {balances && <BalanceList balances={balances} />}
           </form>
         </div>
       </main>
