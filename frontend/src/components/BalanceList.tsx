@@ -1,25 +1,17 @@
+import { formatBalance } from "@/util/formatBalance";
+import { BalanceMap } from "@/util/types";
 import React from "react";
 
-function BalanceCard({
-  amount,
-  name,
-}: {
-  amount: number | string;
-  name: string;
-}) {
+function BalanceCard({ amount, name }: { amount: number; name: string }) {
   return (
     <div className="border-red-100 border rounded-md p-4 flex flex-col">
       <div>{name}</div>
-      <div>{amount}</div>
+      <div>{formatBalance(amount)}</div>
     </div>
   );
 }
 
-export function BalanceList({
-  balances,
-}: {
-  balances: Record<string, string | number>;
-}) {
+export function BalanceList({ balances }: { balances: BalanceMap }) {
   return (
     <div>
       <div className="text-xl my-2">Balances</div>
