@@ -28,7 +28,6 @@ export default function Home() {
     setError("");
     setBalances(null);
     e.preventDefault();
-    console.log("handle submit");
 
     if (!validateEthereumAddress(address)) {
       setError("Invalid Ethereum Address!");
