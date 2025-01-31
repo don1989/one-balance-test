@@ -2,15 +2,13 @@
 
 import { getBalance } from "@/api/balance";
 import { BalanceList } from "@/components/BalanceList";
+import { BalanceMap } from "@/util/types";
 import { validateEthereumAddress } from "@/util/validateEthereumAddress";
 import { ChangeEvent, FormEvent, useState } from "react";
 
 export default function Home() {
   const [address, setAddress] = useState<string>("");
-  const [balances, setBalances] = useState<Record<
-    string,
-    string | number
-  > | null>(null);
+  const [balances, setBalances] = useState<BalanceMap | null>(null);
   const [error, setError] = useState<string>();
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -50,6 +48,10 @@ export default function Home() {
     }
   };
 
+  const handleClear = () => {
+    setAddress("");
+  };
+
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start w-1/2 border rounded-md p-8">
@@ -77,14 +79,23 @@ export default function Home() {
                   📋
                 </button>
               </div>
-
-              <button
-                className="border rounded-md p-2 mt-4 hover:bg-orange-500 w-32"
-                type="submit"
-                disabled={loading}
-              >
-                {loading ? "Loading..." : "Submit"}
-              </button>
+              <div className="space-x-2">
+                <button
+                  className="border rounded-md p-2 mt-4 hover:bg-orange-500 w-32"
+                  type="submit"
+                  disabled={loading}
+                >
+                  {loading ? "Loading..." : "Submit"}
+                </button>
+                <button
+                  className="border rounded-md p-2 mt-4 hover:bg-orange-500 w-32"
+                  type="button"
+                  disabled={loading}
+                  onClick={handleClear}
+                >
+                  Clear
+                </button>
+              </div>
             </div>
 
             <div className="text-red-500">{error}</div>
