@@ -54,8 +54,8 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-1 items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start w-full border rounded-md p-8">
+    <div className="flex flex-1 items-center justify-center min-h-screen w-full p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+      <main className="flex flex-col gap-8 row-start-2 items-center self-center w-full max-w-xl justify-center border rounded-md p-8">
         <h1 className="text-2xl text-orange-500">Display your balances</h1>
         <div className="flex gap-4 items-center flex-col sm:flex-row w-full">
           <form className="w-full space-y-8" onSubmit={handleSubmit}>
