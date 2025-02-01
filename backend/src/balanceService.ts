@@ -7,6 +7,7 @@ import { AlchemyService } from "./external/alchemyService";
 import { Address, TokenBalanceMap } from "./util/types";
 import { Cache } from "./cache/cache";
 import { ethAddressTokenMap } from "./util/addressTokenMap";
+import { validateEthereumAddress } from "./util/validateEthereumAddress";
 
 export class BalanceService {
   private cache: Cache<Address, TokenBalanceMap>;
@@ -21,7 +22,7 @@ export class BalanceService {
   }
 
   public async getBalances(address: Address): Promise<TokenBalanceMap> {
-    if (!this.validateEthereumAddress(address)) {
+    if (!validateEthereumAddress(address)) {
       throw new Error(INVALID_ETHEREUM_ADDRESS);
     }
 
@@ -56,9 +57,5 @@ export class BalanceService {
       return false;
     }
     return Object.keys(balance).length > 0;
-  }
-
-  private validateEthereumAddress(address: string): boolean {
-    return /^0x[a-fA-F0-9]{40}$/.test(address);
   }
 }

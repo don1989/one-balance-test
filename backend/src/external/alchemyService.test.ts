@@ -4,6 +4,7 @@ import { Network, Alchemy } from "alchemy-sdk";
 jest.mock("alchemy-sdk", () => {
   const mockAlchemyInstance = {
     core: {
+      getBalance: jest.fn(),
       getTokenBalances: jest.fn(),
       getTokenMetadata: jest.fn(),
     },
@@ -31,9 +32,11 @@ describe("Alchemy service", () => {
     jest.clearAllMocks();
   });
 
-  it("should return balances successfully", async () => {
+  it("should return ETH balance and token balances successfully", async () => {
     const userAddress = "0x001";
     const tokenAddress = "0xdac";
+
+    mockAlchemy.core.getBalance.mockResolvedValue("5000000000000000000" as any); // 5 ETH in Wei
 
     mockAlchemy.core.getTokenBalances.mockResolvedValue({
       address: userAddress,
@@ -46,11 +49,11 @@ describe("Alchemy service", () => {
       ],
     });
 
-    mockAlchemy.core.getTokenMetadata.mockResolvedValue({
-      name: "name",
-      symbol: "symbol",
-      logo: "logo",
+    mockAlchemy.core.getTokenMetadata.mockResolvedValueOnce({
+      name: "USDC",
+      symbol: "USDC",
       decimals: 18,
+      logo: "logo",
     });
 
     const balances = await alchemyService.fetchBalances(userAddress, {
@@ -58,6 +61,7 @@ describe("Alchemy service", () => {
     });
 
     expect(balances).toEqual({
+      ETH: 5,
       USDC: 1,
     });
 
@@ -70,10 +74,34 @@ describe("Alchemy service", () => {
     );
   });
 
+  it("should return only ETH balance if user has no ERC-20 balances", async () => {
+    const userAddress = "0x001";
+
+    mockAlchemy.core.getBalance.mockResolvedValue("2500000000000000000" as any); // 2.5 ETH in Wei
+
+    mockAlchemy.core.getTokenBalances.mockResolvedValue({
+      address: userAddress,
+      tokenBalances: [],
+    });
+
+    const balances = await alchemyService.fetchBalances(userAddress, {});
+
+    expect(balances).toEqual({
+      ETH: 2.5,
+    });
+
+    expect(mockAlchemy.core.getBalance).toHaveBeenCalledWith(userAddress);
+    expect(mockAlchemy.core.getTokenBalances).toHaveBeenCalledWith(
+      userAddress,
+      []
+    );
+  });
+
   it("should return {} if user has no balances onchain", async () => {
     const userAddress = "0x001";
     const tokenAddress = "0xdac";
 
+    mockAlchemy.core.getBalance.mockResolvedValue("0" as any);
     mockAlchemy.core.getTokenBalances.mockResolvedValue({
       address: userAddress,
       tokenBalances: [],

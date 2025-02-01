@@ -6,6 +6,7 @@ import {
 } from "alchemy-sdk";
 import { Address, AddressTokenMap, TokenBalanceMap } from "../util/types";
 import { RPC_ERROR, ALCHEMY_API_KEY_NOT_SET } from "../util/errors";
+import { convertWeiToEth, convertWithDecimals } from "../util/conversions";
 
 export class AlchemyService {
   private alchemy: Alchemy;
@@ -25,24 +26,37 @@ export class AlchemyService {
     address: Address,
     addressTokenMap: AddressTokenMap
   ): Promise<TokenBalanceMap> {
+    const balances: TokenBalanceMap = {};
+
+    // ETH balance
+    const ethBalance = await this.fetchETHBalance(address);
+    if (ethBalance) {
+      balances["ETH"] = ethBalance;
+    }
+
+    // ERC20 token balances
     const tokenBalances = await this.fetchTokenBalances(
       address,
       addressTokenMap
     );
 
-    const metadata = await this.fetchTokenMetadata(tokenBalances);
-    const balances = this.getBalancesFromTokenData(
-      tokenBalances,
-      metadata,
-      addressTokenMap
-    );
-    return balances;
+    return Object.assign(balances, tokenBalances);
+  }
+
+  private async fetchETHBalance(address: Address) {
+    try {
+      const ethBalance = await this.alchemy.core.getBalance(address);
+      return convertWeiToEth(ethBalance);
+    } catch (err) {
+      console.error("Error fetching ETH balance:", err);
+      throw new Error(RPC_ERROR);
+    }
   }
 
   private async fetchTokenBalances(
     address: Address,
     addressTokenMap: AddressTokenMap
-  ): Promise<TokenBalance[]> {
+  ): Promise<TokenBalanceMap> {
     let resp;
     try {
       resp = await this.alchemy.core.getTokenBalances(
@@ -59,7 +73,15 @@ export class AlchemyService {
       (b) => !b.error && b.tokenBalance && Number(b.tokenBalance) !== 0
     );
 
-    return tokenBalances;
+    const metadata = await this.fetchTokenMetadata(tokenBalances);
+
+    const finalBalances = this.computeTokenData(
+      tokenBalances,
+      metadata,
+      addressTokenMap
+    );
+
+    return finalBalances;
   }
 
   private async fetchTokenMetadata(tokenBalances: TokenBalance[]) {
@@ -71,7 +93,7 @@ export class AlchemyService {
     return metadata;
   }
 
-  private getBalancesFromTokenData(
+  private computeTokenData(
     tokenBalances: TokenBalance[],
     metadata: TokenMetadataResponse[],
     addressTokenMap: AddressTokenMap
@@ -83,9 +105,10 @@ export class AlchemyService {
       const contractAddress = tokenBalances[i].contractAddress.toLowerCase();
       const key = addressTokenMap[contractAddress];
       if (key) {
-        balances[key] =
-          Number(tokenBalances[i].tokenBalance) /
-          Math.pow(10, Number(tokenMetadata.decimals));
+        balances[key] = convertWithDecimals(
+          tokenBalances[i].tokenBalance,
+          tokenMetadata.decimals
+        );
       }
     }
 
