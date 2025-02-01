@@ -2,7 +2,11 @@ import { formatBalance } from "@/util/formatBalance";
 import { BalanceMap } from "@/util/types";
 import React from "react";
 
-function BalanceCard({ amount, name }: { amount: number; name: string }) {
+interface BalanceCardProps {
+  amount: number;
+  name: string;
+}
+function BalanceCard({ amount, name }: BalanceCardProps) {
   return (
     <div className="border-red-100 border rounded-md p-4 flex flex-col">
       <div>{name}</div>
@@ -11,7 +15,10 @@ function BalanceCard({ amount, name }: { amount: number; name: string }) {
   );
 }
 
-export function BalanceList({ balances }: { balances: BalanceMap }) {
+interface BalanceListProps {
+  balances: BalanceMap;
+}
+export function BalanceList({ balances }: BalanceListProps) {
   return (
     <div>
       <div className="text-xl my-2">Balances</div>
