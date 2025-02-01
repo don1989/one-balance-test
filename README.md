@@ -45,6 +45,11 @@ The .env file contains BASE_URL, which should point to the local backend.
 
 If not set, it defaults to http://localhost:3001.
 
+Visit the frontend URL at `http://localhost:3000` and you should see something like this:
+
+![Screenshot 2025-02-01 at 09 54 07](https://github.com/user-attachments/assets/d734750c-34e6-4566-bbf3-57e21d24eae5)
+
+
 ### 🏗 How It Works
 
 - Enter an Ethereum address.
