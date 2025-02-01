@@ -1,7 +1,7 @@
 import { BigNumber } from "alchemy-sdk";
 
 export function convertWeiToEth(wei: BigNumber | string | number) {
-  return Number(wei) / Math.pow(10, 18);
+  return convertWithDecimals(Number(wei), 18);
 }
 
 export function convertWithDecimals(

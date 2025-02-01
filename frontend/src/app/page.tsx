@@ -2,6 +2,7 @@
 
 import { getBalance } from "@/api/balance";
 import { BalanceList } from "@/components/BalanceList";
+import { Button } from "@/components/Button";
 import { BalanceMap } from "@/util/types";
 import { validateEthereumAddress } from "@/util/validateEthereumAddress";
 import { ChangeEvent, FormEvent, useState } from "react";
@@ -53,8 +54,8 @@ export default function Home() {
   };
 
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start w-1/2 border rounded-md p-8">
+    <div className="flex flex-1 items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start w-full border rounded-md p-8">
         <h1 className="text-2xl text-orange-500">Display your balances</h1>
         <div className="flex gap-4 items-center flex-col sm:flex-row w-full">
           <form className="w-full space-y-8" onSubmit={handleSubmit}>
@@ -73,28 +74,24 @@ export default function Home() {
                 />
                 <button
                   type="button"
-                  className="border rounded-md p-1.5 hover:bg-orange-500"
+                  className="border rounded-md p-1.5 bg-transparent hover:bg-orange-500"
                   onClick={handlePaste}
                 >
                   📋
                 </button>
               </div>
               <div className="space-x-2">
-                <button
-                  className="border rounded-md p-2 mt-4 hover:bg-orange-500 w-32"
-                  type="submit"
+                <Button
+                  text={loading ? "Loading..." : "Submit"}
+                  type={"submit"}
                   disabled={loading}
-                >
-                  {loading ? "Loading..." : "Submit"}
-                </button>
-                <button
-                  className="border rounded-md p-2 mt-4 hover:bg-orange-500 w-32"
-                  type="button"
+                />
+                <Button
+                  text={"Clear"}
+                  type={"button"}
                   disabled={loading}
                   onClick={handleClear}
-                >
-                  Clear
-                </button>
+                />
               </div>
             </div>
 
