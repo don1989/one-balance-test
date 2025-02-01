@@ -6,6 +6,11 @@ This is a test project for **OneBalance**, designed to fetch and display Ethereu
 
 ## 🚀 Setup Instructions
 
+### Clone the repository
+```sh
+git clone https://github.com/don1989/one-balance-test.git
+```
+
 ### **Backend**
 
 ```sh
